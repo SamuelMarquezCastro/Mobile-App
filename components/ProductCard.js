@@ -1,22 +1,23 @@
 import React from "react";
-import { View, Text, Image, StyleSheet, Pressable } from "react-native";
+import { View, Text, Image, StyleSheet, Pressable, TouchableOpacity } from "react-native";
+import { useNavigation } from '@react-navigation/native';
 
-export default function ProductCard({ title, price, image }) {
+
+export default function ProductCard({ title, price, image, onPress }) {
+  const navigation = useNavigation();
   return (
     <View style={styles.card}>
-      
+
       <Image
-        source={{ uri: image }}
+        source={{image}}
         style={styles.image}
       />
 
       <Text style={styles.title}>{title}</Text>
-
       <Text style={styles.price}>{price}</Text>
-
-      <Pressable style={styles.button}>
+      <TouchableOpacity style={styles.button} onPress={onPress}>
         <Text style={styles.buttonText}>Bekijk</Text>
-      </Pressable>
+      </TouchableOpacity>
 
     </View>
   );
