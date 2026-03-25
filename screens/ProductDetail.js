@@ -10,12 +10,19 @@ import {
 } from "react-native";
 
 const ProductDetail = ({ route }) => {
-  const { title, description, price, image, category } = route.params;
+  const {
+    title = "Product",
+    description = "Geen beschrijving beschikbaar.",
+    price = 0,
+    image = "https://via.placeholder.com/800x800?text=Geen+afbeelding",
+    category = "Sport",
+  } = route.params ?? {};
 
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState(null);
 
   const sizes = ["S", "M", "L", "XL"];
+  const numericPrice = Number(price) || 0;
 
   const increaseQuantity = () => setQuantity(quantity + 1);
 
@@ -25,7 +32,7 @@ const ProductDetail = ({ route }) => {
     }
   };
 
-  const totalPrice = Number(price) * quantity;
+  const totalPrice = numericPrice * quantity;
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
@@ -34,7 +41,7 @@ const ProductDetail = ({ route }) => {
       <View style={styles.content}>
         <Text style={styles.category}>{category}</Text>
         <Text style={styles.title}>{title}</Text>
-        <Text style={styles.price}>€{price}</Text>
+        <Text style={styles.price}>€{numericPrice.toFixed(2)}</Text>
 
         <Text style={styles.sectionTitle}>Beschrijving</Text>
         <Text style={styles.description}>{description}</Text>
@@ -75,7 +82,7 @@ const ProductDetail = ({ route }) => {
           </TouchableOpacity>
         </View>
 
-        <Text style={styles.totalPrice}>Totaal: €{totalPrice}</Text>
+        <Text style={styles.totalPrice}>Totaal: €{totalPrice.toFixed(2)}</Text>
 
         <TouchableOpacity style={styles.cartButton}>
           <Text style={styles.cartButtonText}>Toevoegen aan winkelmand</Text>

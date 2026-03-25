@@ -5,11 +5,15 @@ import { useNavigation } from '@react-navigation/native';
 
 export default function ProductCard({ title, price, image, onPress }) {
   const navigation = useNavigation();
+  const imageSource = image
+    ? { uri: image }
+    : { uri: "https://via.placeholder.com/300x300?text=Geen+afbeelding" };
+
   return (
     <View style={styles.card}>
 
       <Image
-        source={{image}}
+        source={imageSource}
         style={styles.image}
       />
 

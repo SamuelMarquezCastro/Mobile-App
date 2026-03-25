@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { StatusBar } from "expo-status-bar";
 import {
   View,
@@ -10,8 +10,79 @@ import {
 
 import ProductCard from "../components/ProductCard";
 import BlogCard from "../components/BlogCard";
+import { Picker } from "@react-native-picker/picker";
+
+const categoryNames = {
+  "": "alle categorieën",
+  "699f04d48786422f5c2b343a": "Tshirt",
+  "699ef99797a5763ef1998039": "Blogs",
+};
 
 const HomeScreen = ({ navigation }) => {
+  const [isEnabled, setIsEnabled] = useState(false);
+  const [products, setProducts] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortOption, setSortOption] = useState("price-asc");
+
+
+  useEffect(() => {
+    fetch("https://api.webflow.com/v2/sites/698c7fb73c82c1b0af609e04/products", {
+      headers: {
+        authorization: "326809b6a1dd0d44ae83c6adacd81c9dee1bcb46deefa3ef83b9c6009d878362",
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        setProducts(
+          data.items.map((item) => ({
+            id: item.product.id,
+            title: item.product.fieldData.name,
+            subtitle: item.product.fieldData.description,
+            price: Number(item.skus[0]?.fieldData?.price?.value ?? 0) / 100,
+            image:
+              item.product.fieldData?.["main-image"]?.url ||
+              item.skus[0]?.fieldData?.["main-image"]?.url ||
+              null,
+            category:
+              categoryNames[item.product.fieldData?.category?.[0]] ||
+              "Onbekende categorie",
+            description:
+              item.product.fieldData?.description ||
+              "Geen beschrijving beschikbaar.",
+          })),
+        );
+      })
+      .catch((error) => {
+        console.log("Fetch error:", error);
+      });
+  }, []);
+
+  const filteredProducts = products.filter(
+    (product) =>
+      (selectedCategory === "" || product.category === selectedCategory) &&
+      product.title.toLowerCase().includes(searchQuery.toLowerCase()),
+  );
+
+
+  const sortedProducts = [...filteredProducts].sort((a, b) => {
+    if (sortOption === "price-asc") {
+      return a.price - b.price;
+    }
+    if (sortOption === "price-desc") {
+      return b.price - a.price;
+    }
+    if (sortOption === "name-asc") {
+      return a.title.localeCompare(b.title);
+    }
+    if (sortOption === "name-desc") {
+      return b.title.localeCompare(a.title);
+    }
+    return 0;
+  }
+  );  
+
+
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       <Text style={styles.title}>SportWear Store</Text>
@@ -20,11 +91,52 @@ const HomeScreen = ({ navigation }) => {
         placeholder="Zoek sportkleding..."
         placeholderTextColor="#666"
         style={styles.search}
+        value={searchQuery}
+        onChangeText={setSearchQuery}
       />
+
+      <Picker
+        selectedValue={selectedCategory}
+        onValueChange={setSelectedCategory}
+        style={styles.picker}
+      >
+        <Picker.Item label="Alle categorieën" value="" />
+        <Picker.Item label="Tshirt" value="Tshirt" />
+        <Picker.Item label="Blogs" value="Blogs" />
+      </Picker>
+
+      <Picker
+        selectedValue={sortOption}
+        onValueChange={setSortOption}
+        style={styles.picker}
+      >
+        <Picker.Item label="Prijs: Laag naar Hoog" value="price-asc" />  
+        <Picker.Item label="Prijs: Hoog naar Laag" value="price-desc" />
+        <Picker.Item label="Naam: A-Z" value="name-asc" /> 
+        <Picker.Item label="Naam: Z-A" value="name-desc" />
+      </Picker>
 
       <Text style={styles.sectionTitle}>Populaire producten</Text>
 
       <View style={styles.grid}>
+        {sortedProducts.map((product) => (
+          <ProductCard
+            key={product.id}
+            title={product.title}
+            price={product.price}
+            image={product.image}
+            onPress={() =>
+              navigation.navigate("Details", {
+                title: product.title,
+                description: product.description,
+                price: product.price,
+                image: product.image,
+                category: product.category,
+              })
+            }
+          />
+        ))}
+
         <ProductCard
           title="Nike Running Shirt"
           price="35"
@@ -104,6 +216,11 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     padding: 12,
     borderRadius: 10,
+    marginBottom: 20,
+  },
+
+  picker: {
+    backgroundColor: "white",
     marginBottom: 20,
   },
 
